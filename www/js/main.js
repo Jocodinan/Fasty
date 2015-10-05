@@ -98,6 +98,9 @@ window.log=function(){log.history=log.history||[];log.history.push(arguments);if
                 self.validateForms(event);
             });
 
+            //Animaciones CSS al mostrar elemento en pantalla
+            self.animateElements($('[data-animate]'));
+
         },
         //Funciones que se inicializan en el window.load
         onLoadSetup : function(){
@@ -107,6 +110,11 @@ window.log=function(){log.history=log.history||[];log.history.push(arguments);if
         //Funciones que se inicializan en el evento scroll
         onScrollSetup : function(){
             var self = this;
+
+             //Animaciones CSS al mostrar elemento en pantalla
+            self.animateOnView($('[data-animate-on-scroll]'));
+            //Animaciones CSS con delay
+            self.animateOnDelay($('[data-animate-delay]'));
         },
         //Funciones que se inicializan en el evento resize
         onResizeSetup : function(){
@@ -420,6 +428,36 @@ window.log=function(){log.history=log.history||[];log.history.push(arguments);if
             var elemBottom = elemTop + $elem.height();
 
             return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+        },
+        animateElements : function($elements){
+            var self = this;
+            $.each($elements, function(index, element){
+                var $element = $(element);
+                var animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
+
+                $element.addClass('animated ' + animation);
+
+            });
+        },
+        animateOnView : function($elements){
+            var self = this;
+            $.each($elements, function(index, element){
+                var $element = $(element);
+                var animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
+
+                if(self.isScrolledIntoView($element)){
+                    $element.addClass('animated ' + animation);
+                }
+            });
+        },
+        animateOnDelay : function($elements){
+            var self = this;
+            $.each($elements, function(index, element){
+                var $element = $(element);
+                if(self.isScrolledIntoView($element)){
+                    $element.addClass('animated ' + $element.data('animate'));
+                }
+            });
         },
         /////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////
