@@ -1,0 +1,303 @@
+/*------------------------------------------------------------------------------Animaciones */
+@import 'animate';
+/*------------------------------------------------------------------------------Normalizador */
+@import 'normalize';
+/*------------------------------------------------------------------------------Mixins */
+@import 'mixins';
+/*------------------------------------------------------------------------------Tipografía */
+@import 'fonts';
+/*------------------------------------------------------------------------------Variables */
+
+$font-family-base: 'Open Sans', sans-serif;//Familia tipográfica base
+$line-height-base: 160%;//Line height base
+$font-size-base: 14;//Tamaño base en pixeles
+
+$link-color: #007BC1;//Color del link principal
+$link-hover-color: darken($link-color, 15%);
+$body-bg: #FFF;//Fondo del body
+
+$max-width-row: 1170px;
+
+$h1-size: #{(20 / $font-size-base)}em;
+$h2-size: #{(18 / $font-size-base)}em;
+$h3-size: #{(16 / $font-size-base)}em;
+$h4-size: #{(14 / $font-size-base)}em;
+$h5-size: 1.5em;
+$h6-size: 1.2em;
+
+$margin: 20px; //Margen general
+
+/*----Colores principales----*/
+
+
+/*----Colores secundarios----*/
+
+/*------------------------------------------------------------------------------Grillas */
+.row {width: 100%; max-width: $max-width-row; margin-left: auto; margin-right: auto;}
+
+//Generador de grilla
+@include ninja_grid(12, 30, 1170, column);
+/*------------------------------------------------------------------------------Auxiliares */
+.to-the-left {float: left;}
+.to-the-right {float: right;}
+
+.align-left {text-align: left}
+
+.align-center {text-align: center}
+.align-right {text-align: right}
+
+.relative-position {position: relative;}
+
+.inline-list {
+  display: table;
+  width: 100%;
+  li {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  &.floated {
+    display: block;
+    @extend .clearfix;
+    li {
+      display: block;
+      float: left;
+    }
+  }
+}
+
+//Clases para realizar animaciones con delay
+@for $i from 0 through 11 {
+  .delay-animation.delay-#{$i} {
+    animation-delay: ($i * 450ms);
+  }
+}
+
+pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  color: #333;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+}
+
+.button-reset {
+  @include appearance(none);
+  background: transparent;
+  border-radius: 0px;
+  border: 0px;
+  outline: 0px;
+  padding: 0px;
+}
+
+.elastic-img {
+  width: 100%;
+  height: auto;
+}
+
+.elastic-img-limit {
+  max-width: 100%;
+  height: auto;
+}
+
+.centered-img {
+  display: block;
+  margin: 0 auto;
+}
+
+.clearfix {
+  *zoom: 1;
+  &:before, &:after {
+    content: " ";
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+.rounded-image {
+  border-radius: 100%;
+  border: 1px solid #D5D5D5;
+}
+
+.clear-margin {
+  margin: 0;
+}
+
+.margin-bottom-wrapp {
+  margin-bottom: 20px;
+}
+
+/*------------------------------------------------------------------------------Generales */
+html {
+  font-size: #{$font-size-base}px;
+}
+
+body {
+  font-family: $font-family-base;
+  line-height: $line-height-base;
+  background-color: $body-bg;
+  font-size: #{$font-size-base}px;
+  -webkit-backface-visibility: hidden;
+}
+
+button {
+  font-family: $font-family-base;
+}
+
+a {
+  color: $link-color;
+  text-decoration: none;
+  outline: 0 none;
+  &:hover {
+    color: darken($link-color, 15%);
+    outline: 0 none;
+  }
+  &:focus {
+    outline: 0 none;
+  }
+}
+
+ul {
+  margin-left: 0;
+}
+
+p {
+  font-size: 1em;
+  margin: 0;
+  line-height: $line-height-base;
+  margin-bottom: $margin;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/*------------------------------------------------------------------------------Fondos */
+
+
+/*------------------------------------------------------------------------------Headlines */
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+h1 {font-size: $h1-size}
+h2 {font-size: $h2-size}
+h3 {font-size: $h3-size}
+h4 {font-size: $h4-size;}
+h5 {font-size: $h5-size}
+h6 {font-size: $h6-size}
+
+/*------------------------------------------------------------------------------Icons */
+
+.icon-element {
+  @extend .button-reset;
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  background-repeat: no-repeat;
+  background-position: center center;
+  speak: none;
+  /*------------------Generales----*/
+  &.inline-left {
+    margin-right: 10px;
+  }
+  &.inline-right {
+    margin-left: 10px;
+  }
+  &.centered {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  &.rounded-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+  }
+}
+
+/*------------------------------------------------------------------------------Buttons */
+
+.btn {
+  @extend .button-reset;
+  font-family: $font-family-base;
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1em;
+  padding: 12px 20px;
+  border-radius: 5px;
+  width: auto;
+  height: auto;
+  line-height: 120%;
+  transition: background 300ms ease;
+  /*----------------Tamaños--------*/
+  
+  /*----------------Formas--------*/
+  &.transparent {
+    color: transparent;
+    font-size: 0
+  }
+}
+
+/*------------------------------------------------------------------------------Forms */
+
+input, select, textarea {
+  @include appearance(none);
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+  background-color: transparent;
+  border: 1px solid #A3C3D9;
+  border-radius: 5px;
+  padding: 7px 25px 7px 5px;
+  // color: $gray;
+  height: 32px;
+  background-color: #FFF;
+  &:focus {
+    outline: 0 none;
+  }
+}
+/*------------------------------------------------------------------------------Header */
+
+
+/*------------------------------------------------------------------------------Tables */
+
+table {
+  width: 100%;
+}
+
+/*------------------------------------------------------------------------------Contenedores */
+
+
+/*------------------------------------------------------------------------------Animaciones */
+
+
+/*------------------------------------------------------------------------------Footer */
+
+
+
+/*------------------------------------------------------------------------------OLD IE */
+
+
+/*------------------------------------------------------------------------------Media Queries */
+
+@media only screen and (max-width: $max-width-row) {
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media only screen and (max-width: 640px) {
+
+}
