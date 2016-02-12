@@ -19,6 +19,6 @@ Optimizadore de imágenes:
 
 
 TODOS:
-1.- Limpiador de CSS
-2.- minificador de JS
-3.- minificador de HTML
+1.- minificador de JS
+2.- minificador de HTML
+3.- concatenar JS
