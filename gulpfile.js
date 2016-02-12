@@ -23,20 +23,23 @@ var AUTOPREFIXER_BROWSERS = [
 
 //Procesa el SASS en el CSS
 gulp.task('styles', function() {
+
   return gulp.src([
-    basePath +'sass/main.scss',
-  ])
-  .pipe($.changed('sass', {extension: '.scss'}))
-  .pipe($.rubySass({
-      style: 'expanded',
+       basePath +'sass/main.scss'
+    ])
+    .pipe($.newer('.tmp/css'))
+    .pipe($.sourcemaps.init())
+    .pipe($.sass({
       precision: 10
-    })
-    .on('error', console.error.bind(console))
-  )
-  .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
-  .pipe($.if('*.css', $.csso())) //optimiza el css
-  .pipe(gulp.dest(basePath +'css'))
-  .pipe($.size({title: 'css'}));
+    }).on('error', $.sass.logError))
+    .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
+    .pipe(gulp.dest('.tmp/css'))
+    // Concatenate and minify styles
+    .pipe($.if('*.css', $.cssnano()))
+    .pipe($.size({title: 'css'}))
+    .pipe($.sourcemaps.write('./'))
+    .pipe(gulp.dest('www/css'));
+
 });
 
 // Lint JavaScript
@@ -62,7 +65,6 @@ gulp.task('default', ['styles'], function () {
   gulp.watch([basePath +'js/main.js'], ['jshint', reload]);
   gulp.watch([basePath +'images/**/*'], reload);
 });
-
 
 //Optimiza imagenes en formato PNG y JPG
 gulp.task('images', function () {

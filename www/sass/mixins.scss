@@ -1,28 +1,8 @@
-@mixin opacity($opacity) {
-  opacity: $opacity;
-  $opacity-ie: $opacity * 100;
-  filter: alpha(opacity=$opacity-ie); //IE8
-}
-
-@mixin set-bg-img( $cool_url, $fallback_url ){
-    background-image: $cool_url;
-    .no-svg &{ background-image: $fallback_url; }
-}
-
 @mixin appearance( $val ){
     -webkit-appearance: $val;
     -moz-appearance: $val;
     -ms-appearance: $val;
     appearance: $val;
-}
-
-@mixin css3-prefix($property, $value) {
-  -webkit-#{$property}: #{$value};
-   -khtml-#{$property}: #{$value};
-     -moz-#{$property}: #{$value};
-      -ms-#{$property}: #{$value};
-       -o-#{$property}: #{$value};
-          #{$property}: #{$value};
 }
 
 @mixin x-placeholder {
@@ -37,151 +17,31 @@
   }
 }
 
-@mixin gradient-horizontal($start-color: #555, $end-color: #333, $start-percent: 0%, $end-percent: 100%) {
-  background-image: -webkit-linear-gradient(left, $start-color $start-percent, $end-color $end-percent); // Safari 5.1-6, Chrome 10+
-  background-image: -o-linear-gradient(left, $start-color $start-percent, $end-color $end-percent); // Opera 12
-  background-image: linear-gradient(to right, $start-color $start-percent, $end-color $end-percent); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=1); // IE9 and down
-}
-
-@mixin gradient-vertical($start-color: #555, $end-color: #333, $start-percent: 0%, $end-percent: 100%) {
-  background-image: -webkit-linear-gradient(top, $start-color $start-percent, $end-color $end-percent);  // Safari 5.1-6, Chrome 10+
-  background-image: -o-linear-gradient(top, $start-color $start-percent, $end-color $end-percent);  // Opera 12
-  background-image: linear-gradient(to bottom, $start-color $start-percent, $end-color $end-percent); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
-  background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=0); // IE9 and down
-}
-
-@mixin gradient-directional($start-color: #555, $end-color: #333, $deg: 45deg) {
-  background-repeat: repeat-x;
-  background-image: -webkit-linear-gradient($deg, $start-color, $end-color); // Safari 5.1-6, Chrome 10+
-  background-image: -o-linear-gradient($deg, $start-color, $end-color); // Opera 12
-  background-image: linear-gradient($deg, $start-color, $end-color); // Standard, IE10, Firefox 16+, Opera 12.10+, Safari 7+, Chrome 26+
-}
-
-@mixin gradient-horizontal-three-colors($start-color: #00b3ee, $mid-color: #7a43b6, $color-stop: 50%, $end-color: #c3325f) {
-  background-image: -webkit-linear-gradient(left, $start-color, $mid-color $color-stop, $end-color);
-  background-image: -o-linear-gradient(left, $start-color, $mid-color $color-stop, $end-color);
-  background-image: linear-gradient(to right, $start-color, $mid-color $color-stop, $end-color);
-  background-repeat: no-repeat;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=1); // IE9 and down, gets no color-stop at all for proper fallback
-}
-
-@mixin gradient-vertical-three-colors($start-color: #00b3ee, $mid-color: #7a43b6, $color-stop: 50%, $end-color: #c3325f) {
-  background-image: -webkit-linear-gradient($start-color, $mid-color $color-stop, $end-color);
-  background-image: -o-linear-gradient($start-color, $mid-color $color-stop, $end-color);
-  background-image: linear-gradient($start-color, $mid-color $color-stop, $end-color);
-  background-repeat: no-repeat;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}', GradientType=0); // IE9 and down, gets no color-stop at all for proper fallback
-}
-@mixin gradient-radial($inner-color: #555, $outer-color: #333) {
-  background-image: -webkit-radial-gradient(circle, $inner-color, $outer-color);
-  background-image: radial-gradient(circle, $inner-color, $outer-color);
-  background-repeat: no-repeat;
-}
-@mixin gradient-striped($color: rgba(255,255,255,.15), $angle: 45deg) {
-  background-image: -webkit-linear-gradient($angle, $color 25%, transparent 25%, transparent 50%, $color 50%, $color 75%, transparent 75%, transparent);
-  background-image: -o-linear-gradient($angle, $color 25%, transparent 25%, transparent 50%, $color 50%, $color 75%, transparent 75%, transparent);
-  background-image: linear-gradient($angle, $color 25%, transparent 25%, transparent 50%, $color 50%, $color 75%, transparent 75%, transparent);
-}
-
-//Media queries más ordenaditos
-//EJEMPLO
-// .clase {
-//   @include respond-to(smartphones) { width: 100% ;}
-// }
 @mixin respond-to($media) {
   @if $media == large {
-    @media only screen and (min-width : 1281px) { @content; }
+    @media only screen and #{$large-mq} { @content; }
+  }
+  @else if $media == normal {
+    @media only screen and #{$normal-mq} { @content; }
   }
   @else if $media == medium {
-    @media only screen and (min-width: 961px) and (max-width : 1280px) { @content; }
+    @media only screen and #{$medium-mq} { @content; }
   }
   @else if $media == small {
-    @media only screen and (min-width: 641px) and (max-width:960px) { @content; }
-  }
-  @else if $media == extra-small {
-    @media only screen and (max-width : 640px) { @content }
+    @media only screen and #{$small-mq} { @content }
   }
 }
 
-//Genera una grilla según parámetros
-//Ejemplo:
-//@include ninja_grid(12, 20, 1000, columns);
+@mixin ninja-grid($column-count, $gap, $grid-width, $grid-name){
+  .row [class^="#{$grid-name}"] {display: block; float: left; padding-left:(($gap) / 2) * 1px; padding-right:(($gap) / 2) * 1px;}
 
-@mixin ninja-grid($column-count, $column-margin, $grid-width, $grid-name){
-  $column-width-pixels: ($grid-width - ($column-margin * ($column-count - 1))) / $column-count;
-  $column-width-percentage: (($grid-width - ($column-margin * ($column-count - 1))) / $column-count) / $grid-width * 100%;
-  $column-margin-percentage: $column-margin / $grid-width * 100%;
+  $column-width-percentage: ((($grid-width / $column-count) * 100) / $grid-width) * 1%; 
 
-  .row [class*="#{$grid-name}"] {
-      display: block; float: left; margin-right: $column-margin-percentage;
-      &.last { margin-right: 0; }
-      &.down-extra-small {
-        @include respond-to(extra-small){
-          float:none;
-          width:100%;
-        }
-      }
-      &.down-small {
-        @include respond-to(small){
-          float:none;
-          width:100%;
-        }
-      }
-      &.down-medium {
-        @include respond-to(medium){
-          float:none;
-          width:100%;
-        }
-      }
-      &.down-medium {
-        @include respond-to(large){
-          float:none;
-          width:100%;
-        }
-      }
-  }
-
-  //itera por todas las columnas
   @for $i from 1 through ($column-count - 1){
-      .#{$grid-name}-#{$i} {width: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);}
-      .#{$grid-name}-offset-#{$i} {margin-left: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);}
-      .#{$grid-name}-padding-#{$i} {padding-right: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);}
-      .col{
-        &.medium-#{$i}{
-          @include respond-to(medium){
-            width: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);
-          }
-          &.last-medium{
-            @include respond-to(medium){
-              margin-right:0;
-            }
-          }
-        }
-        &.small-#{$i}{
-          @include respond-to(small){
-            width: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);
-          }
-          &.last-small{
-            @include respond-to(small){
-              margin-right:0;
-            }
-          }
-        }
-        &.extra-small-#{$i}{
-          @include respond-to(extra-small){
-            width: $column-width-percentage * $i + $column-margin-percentage * ($i - 1);
-          }
-          &.last-extra-small{
-            @include respond-to(extra-small){
-              margin-right:0;
-            }
-          }
-        }
-      }
-
+    .#{$grid-name}-#{$i} {width: $column-width-percentage * $i;}
+    @include respond-to(small){
+      &.small-#{$i}{width: $column-width-percentage * $i;}
+    }
   }
 }
 
