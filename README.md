@@ -16,9 +16,3 @@ Para comenzar a trabajar:
 Optimizadore de imágenes:
 
 1.- Para optimizar las imagenes que se encuentran dentro de la carpeta /images, desde el directorio del proyecto: $ gulp images
-
-
-TODOS:
-1.- Limpiador de CSS
-2.- minificador de JS
-3.- minificador de HTML

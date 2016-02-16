@@ -17,18 +17,9 @@
   }
 }
 
-@mixin respond-to($media) {
-  @if $media == large {
-    @media only screen and #{$large-mq} { @content; }
-  }
-  @else if $media == normal {
-    @media only screen and #{$normal-mq} { @content; }
-  }
-  @else if $media == medium {
-    @media only screen and #{$medium-mq} { @content; }
-  }
-  @else if $media == small {
-    @media only screen and #{$small-mq} { @content }
+@mixin respond-to($size) {
+  @media only screen and #{map-get($breakpoints, $size)} {
+    @content;
   }
 }
 
@@ -39,8 +30,12 @@
 
   @for $i from 1 through ($column-count - 1){
     .#{$grid-name}-#{$i} {width: $column-width-percentage * $i;}
-    @include respond-to(small){
-      &.small-#{$i}{width: $column-width-percentage * $i;}
+    .#{$grid-name}-offset-#{$i} {margin-left: $column-width-percentage * $i;}
+    @each $key, $value in $breakpoints{
+      @include respond-to($key){
+        &.#{$key}-#{$i}{width: $column-width-percentage * $i;}
+        &.#{$key}-offset-#{$i} {margin-left: $column-width-percentage * $i;}
+      }
     }
   }
 }
