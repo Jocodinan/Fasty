@@ -31,13 +31,21 @@
   @for $i from 1 through ($column-count - 1){
     .#{$grid-name}-#{$i} {width: $column-width-percentage * $i;}
     .#{$grid-name}-offset-#{$i} {margin-left: $column-width-percentage * $i;}
+    .#{$grid-name}-pull-#{$i} {position:relative; right: (100% - ($column-width-percentage * $i)) * -1;}
+    .#{$grid-name}-push-#{$i} {position:relative; left: (100% - ($column-width-percentage * $i)) * -1;}
+  }
+
+  @for $i from 1 through ($column-count - 1){
     @each $key, $value in $breakpoints{
       @include respond-to($key){
-        &.#{$key}-#{$i}{width: $column-width-percentage * $i;}
-        &.#{$key}-offset-#{$i} {margin-left: $column-width-percentage * $i;}
+        .#{$key}-#{$i}{width: $column-width-percentage * $i;}
+        .#{$key}-offset-#{$i} {margin-left: $column-width-percentage * $i;}
+        .#{$key}-pull-#{$i}{position:relative; right: (100% - ($column-width-percentage * $i)) * -1;}
+        .#{$key}-push-#{$i}{position:relative; left: (100% - ($column-width-percentage * $i)) * -1;}
       }
     }
   }
+
 }
 
 @mixin triangle($direction, $width, $height, $color) {

@@ -7,6 +7,7 @@ var autoprefixer = require('gulp-autoprefixer');
 var $ = require('gulp-load-plugins')();
 
 var basePath = 'www/';
+var distPath = 'dist/'
 var AUTOPREFIXER_BROWSERS = [
   'ie >= 10',
   'ie_mob >= 10',
@@ -38,7 +39,7 @@ gulp.task('styles', function() {
     .pipe($.if('*.css', $.cssnano()))
     .pipe($.size({title: 'css'}))
     .pipe($.sourcemaps.write('./'))
-    .pipe(gulp.dest('www/css'));
+    .pipe(gulp.dest(basePath + 'css'));
 
 });
 
@@ -68,10 +69,68 @@ gulp.task('default', ['styles'], function () {
 
 //Optimiza imagenes en formato PNG y JPG
 gulp.task('images', function () {
-    return gulp.src([basePath +'images/**/*.png', basePath +'images/**/*.jpg'])
-        .pipe($.imagemin({
-            progressive: true
-        }))
-        .pipe(gulp.dest(basePath +'images/'));
+    return gulp.src([basePath +'images/**/*.png', basePath +'images/**/*.jpg', basePath +'images/**/*.jpeg'])
+    .pipe($.imagemin({
+      progressive: true,
+      interlaced: true
+    }))
+    .pipe(gulp.dest(distPath +'images/'));
+});
+
+//Concatena y minifica JS
+gulp.task('scripts', function(){
+  gulp.src([
+    //Agregar los js correspondientes
+    basePath +'js/libs/jquery.js',
+    basePath +'js/libs/modernizr.js',
+    basePath +'js/libs/ninjaSlider.js',
+    basePath +'js/main.js'
+  ])
+  .pipe($.newer('.tmp/scripts'))
+  .pipe(gulp.dest('.tmp/scripts'))
+  .pipe($.concat('main.min.js'))
+  .pipe($.uglify({preserveComments: 'some'}))
+  .pipe($.size({title: 'scripts'}))
+  .pipe(gulp.dest(distPath +'js/'))
+});
+
+gulp.task('html', function(){
+  return gulp.src(basePath + '**/*.html')
+    // Remove any unused CSS
+    .pipe($.if('*.css', $.uncss({
+      html: [
+        basePath + '**/*.html'
+      ],
+      // CSS Selectors for UnCSS to ignore
+      ignore: ['equal']
+    })))
+
+    // Minify any HTML
+    .pipe($.if('*.html', $.htmlmin({
+      removeComments: true,
+      collapseWhitespace: true,
+      collapseBooleanAttributes: true,
+      removeAttributeQuotes: true,
+      removeRedundantAttributes: true,
+      removeEmptyAttributes: true,
+      removeScriptTypeAttributes: true,
+      removeStyleLinkTypeAttributes: true,
+      removeOptionalTags: true
+    })))
+    // Output files
+    .pipe($.if('*.html', $.size({title: 'html', showFiles: true})))
+    .pipe(gulp.dest(distPath));
+});
+
+gulp.task('deploy', ['images', 'scripts', 'html'], function(){
+  var filesToMove = [
+      basePath + 'css/**/*.css',
+      basePath + 'css/fonts/**/*.css'
+  ];
+  gulp.src(filesToMove, {
+    dot: true,
+    base: basePath
+  })
+  .pipe(gulp.dest(distPath));
 });
 
