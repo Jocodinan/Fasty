@@ -108,6 +108,7 @@ gulp.task('html', function(){
     .pipe(gulp.dest(distPath));
 });
 
+//Incluye archivos html, por ejemplo: <include src="shared/header.html"></include>
 gulp.task('html-include', function() {
   return gulp.src(basePath + '**/*.html')
     .pipe(include())
