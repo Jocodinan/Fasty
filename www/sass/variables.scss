@@ -26,8 +26,8 @@ $margin: 20px; //Margen general
 /*----Breakpoints----*/
 
 $breakpoints: (
-  large: "(min-width : 1300px)",
-  normal: "(min-width: 1024px) and (max-width : 1300px)",
+  xlarge: "(min-width : 1300px)",
+  large: "(min-width: 1024px) and (max-width : 1300px)",
   medium: "(min-width: 768px) and (max-width:1024px)",
   small: "(max-width : 767px)"
 );

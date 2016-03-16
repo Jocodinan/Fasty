@@ -5,6 +5,7 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var autoprefixer = require('gulp-autoprefixer');
 var $ = require('gulp-load-plugins')();
+var include = require('gulp-html-tag-include');
 
 var basePath = 'www/';
 var distPath = 'dist/'
@@ -50,21 +51,6 @@ gulp.task('jshint', function () {
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'))
     .pipe($.if(!browserSync.active, $.jshint.reporter('fail')));
-});
-
-//Tarea que escucha los SCSS y HTML, Tarea para trabajar producción
-gulp.task('default', ['styles'], function () {
-  browserSync({
-    notify: false,
-    server: ['.tmp', basePath]
-  });
-
-  gulp.watch([basePath +'**/*.html'], reload);
-
-  gulp.watch([basePath +'sass/**/*.scss'], ['styles', reload]);
-
-  gulp.watch([basePath +'js/main.js'], ['jshint', reload]);
-  gulp.watch([basePath +'images/**/*'], reload);
 });
 
 //Optimiza imagenes en formato PNG y JPG
@@ -122,6 +108,26 @@ gulp.task('html', function(){
     .pipe(gulp.dest(distPath));
 });
 
+gulp.task('html-include', function() {
+  return gulp.src(basePath + '**/*.html')
+    .pipe(include())
+    .pipe(gulp.dest(basePath));
+});
+
+//Tarea que escucha los SCSS y HTML, Tarea para trabajar producción
+gulp.task('default', ['styles', 'html-include'], function () {
+  browserSync({
+    notify: false,
+    server: ['.tmp', basePath]
+  });
+
+  gulp.watch([basePath +'**/*.html'], ['html-include', reload]);
+  gulp.watch([basePath +'sass/**/*.scss'], ['styles', reload]);
+  gulp.watch([basePath +'js/main.js'], ['jshint', reload]);
+  gulp.watch([basePath +'images/**/*'], reload);
+});
+
+//Tarea que genera el entregable en la carpeta dist
 gulp.task('deploy', ['images', 'scripts', 'html'], function(){
   var filesToMove = [
       basePath + 'css/**/*.css',
