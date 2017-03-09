@@ -7,29 +7,27 @@
     
     //Detecta la versión de Internet Explorer según su User Agent y retorna su versión
     function getInternetExplorerVersion() {
-        var rv = -1; // Return value assumes failure.
+        let rv = -1; // Return value assumes failure.
         if (navigator.appName == 'Microsoft Internet Explorer') {
-            var ua = navigator.userAgent;
-            var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+            const ua = navigator.userAgent;
+            const re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
             if (re.exec(ua) != null)
                 rv = parseFloat(RegExp.$1);
         }
         return rv;
     }
 
-    // detecta IE10+ a través de la deteccion de los eventos pointers y coloca una clase "mspointers" en el HTML a través de Modernizr
-    Modernizr.addTest('mspointers', function () { return window.navigator.msPointerEnabled; });
     // detecta IE9- a través del parseo del useragent y coloca una clase con la versión de IE en el HTML a través de Modernizr
-    Modernizr.addTest('oldie', function () {
-        var v = getInternetExplorerVersion();
+    Modernizr.addTest('oldie', () => {
+        const v = getInternetExplorerVersion();
         return v <= 9 && v > -1 ;
     });
-    Modernizr.addTest('oldie-8', function () {
-        var v = getInternetExplorerVersion();
+    Modernizr.addTest('oldie-8', () => {
+        const v = getInternetExplorerVersion();
         return v <= 8 && v > -1 ;
     });
-    Modernizr.addTest('oldie-7', function () {
-        var v = getInternetExplorerVersion();
+    Modernizr.addTest('oldie-7', () => {
+        const v = getInternetExplorerVersion();
         return v <= 7 && v > -1 ;
     });
     
@@ -38,12 +36,12 @@
     ///////////////////////////////////////////////////////////////////////////////////////////// PLUGINS
 
     //Igual la altura de las cajas
-    $.fn.equalizeHeights = function () {
-        var $items = $(this),
+    $.fn.equalizeHeights = () => {
+        let $items = $(this),
             heightArray = [];
         if( !$items.length ){ return; }
         $items.height('auto');
-        $items.each(function(index, elem){ heightArray.push( $(elem).height() ); });
+        $items.each((index, elem) => { heightArray.push( $(elem).height() ); });
         $items.height( Math.max.apply( Math, heightArray ) ); 
         return this;
     };
@@ -52,7 +50,7 @@
     /////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////// HANDLERS
 
-    window.handler = function(){
+    window.handler = () => {
        
     };
 
@@ -65,73 +63,67 @@
         ///////////////////////////////////////////////////////////////////////////////////////////// INICIALIZADORAS
 
         //Funciones que se inicializan en el document.ready
-        onReadySetup : function() {
-            var self = this; //Se almacena this com oel objeto para no confundir
-            self.$body = $('body'); //Se almacena el body en una variable para ahorrar memoria
+        onReadySetup(){
+            this.$body = $('body'); //Se almacena el body en una variable para ahorrar memoria
 
-            self.loadScripts();
-
-            self.eventsHandler( $('[data-func]') ); //Se ejecuta el método que permite la delegación de eventos automática desde el HTML
-            if( ! Modernizr.svg ) { self.svgFallback( $('[data-svgfallback]') ); } //Se ejecuta el fallback para SVG's si es que el navegador no lo soporta
+            this.eventsHandler( $('[data-func]') ); //Se ejecuta el método que permite la delegación de eventos automática desde el HTML
+            if( ! Modernizr.svg ) { this.svgFallback( $('[data-svgfallback]') ); } //Se ejecuta el fallback para SVG's si es que el navegador no lo soporta
             
             //Validador de formularios
-            $('form[data-validate]').on('submit', function(event){
-                self.validateForms(event);
+            $('form[data-validate]').on('submit', (event) => {
+                this.validateForms(event);
             });
-            $('form[data-validate]').find('[required]').on('blur keyup change', function(event){
-                self.validateForms(event);
+            $('form[data-validate]').find('[required]').on('blur keyup change', (event) => {
+                this.validateForms(event);
             });
 
             //Animaciones CSS al mostrar elemento en pantalla
-            self.animateElements($('[data-animate]'));
+            this.animateElements($('[data-animate]'));
 
         },
         //Funciones que se inicializan en el window.load
-        onLoadSetup : function(){
-            var self = this;
+        onLoadSetup(){
             $('.equal').equalizeHeights();
         },
         //Funciones que se inicializan en el evento scroll
-        onScrollSetup : function(){
-            var self = this;
-
+        onScrollSetup(){
              //Animaciones CSS al mostrar elemento en pantalla
-            self.animateOnView($('[data-animate-on-scroll]'));
+            this.animateOnView($('[data-animate-on-scroll]'));
             //Animaciones CSS con delay
-            self.animateOnDelay($('[data-animate-delay]'));
+            this.animateOnDelay($('[data-animate-delay]'));
         },
         //Funciones que se inicializan en el evento resize
-        onResizeSetup : function(){
+        onResizeSetup(){
             $('.equal').equalizeHeights();
         },
         //Setea delegaciones automáticas a través del HTML
-        eventsHandler : function( $elements ){
+        eventsHandler( $elements ){
             if( ! $elements.length ){ return; }
-            var self = this;
-            $.each( $elements, function( index, elem ){
-                var $item = $(elem),
+
+            $.each( $elements, ( index, elem ) => {
+                const $item = $(elem),
                     func = $item.data('func'),
                     events = $item.data('event') ? $item.data('event') : 'click.handler';
-                if( func && typeof( self[func] ) === 'function' ){
-                    $item.on( events, $.proxy( self[ func ], self ) );
+                if( func && typeof( this[func] ) === 'function' ){
+                    $item.on( events, $.proxy( this[ func ], this ) );
                     $item.data('delegated', true);
                 } 
             });
     	},
         //Fallback para imágenes SVG
-        svgFallback : function( $elements ){
+        svgFallback( $elements ){
             if( ! $elements.length ){ return; }
-            var $item;
+            let $item;
 
-            $elements.each(function(index, elem){
+            $elements.each((index, elem) => {
                 $item = $(elem);
                 $item.attr('src', $item.data('svgfallback'));
             });
         },
         //Formatea strings según parámetros
         // self.currency(value, 0, ['.', '.', '.'])
-        currency : function(num) {
-            var str = num.toString().replace("$", ""), parts = false, output = [], i = 1, formatted = null;
+        currency(num) {
+            let str = num.toString().replace("$", ""), parts = false, output = [], i = 1, formatted = null;
             if(str.indexOf(".") > 0) {
                 parts = str.split(".");
                 str = parts[0];
@@ -149,33 +141,18 @@
             formatted = output.reverse().join("");
             return(formatted + ((parts) ? "." + parts[1].substr(0, 2) : ""));
         },
-        loadScripts : function(){
-            var self = this;
-            Modernizr.load([
-                {
-                    test: $('.slider').length,
-                    yep: 'js/libs/ninjaSlider.js',
-                    callback: function(url, result, key){
-                        setTimeout(function(){},3000);
-                        if(result){ self.setupSliders();}
-                    }
-                }
-            ]);
-        },
-        validateForms : function(event){
+        validateForms(event){
             event.preventDefault();
-            var self = this;
-            var $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form');//Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
-            var $inputs = event.type == 'submit' ? $form.find('[required]') : $(event.currentTarget); //Se almacenan todos los elementos requeridos
-            var isValid = true; //Flag para saber si el formulario finalmente es válido o no, al comienzo siempre es válido
-            var emailRegEx = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //Regex para comprobar email
-            var numerosRegEx = /^\d+(?:\.\d{1,2})?$/; //Regex para comprobar números
-            var letrasyNumerosRegEx = /^[0-9a-zA-Z]+$/ //Regex para numeros y letras;
+            const $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form');//Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
+            const $inputs = event.type == 'submit' ? $form.find('[required]') : $(event.currentTarget); //Se almacenan todos los elementos requeridos
+            let isValid = true; //Flag para saber si el formulario finalmente es válido o no, al comienzo siempre es válido
+            const emailRegEx = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //Regex para comprobar email
+            const numerosRegEx = /^\d+(?:\.\d{1,2})?$/; //Regex para comprobar números
+            const letrasyNumerosRegEx = /^[0-9a-zA-Z]+$/ //Regex para numeros y letras;
             //Función que setea un input inválido
-            var setToFalse = function($input){
-                var customMessage = $input.data('custom-message'); //Mensaje customizado
-                var $parentHolder = $input.parent(); //Elemento padre
-                var type = $input.attr('type'); //Tipo de input
+            const setToFalse = ($input) => {
+                const customMessage = $input.data('custom-message'); //Mensaje customizado
+                const type = $input.attr('type'); //Tipo de input
                 isValid = false; //flag
 
                 if(type == 'hidden'){return false;} //Si el tipo de input es hidden no hace nada
@@ -189,9 +166,8 @@
                 if(type == 'radio' || type == 'checkbox'){return false;} //Si es un checkbox o un radio no hace nada
             }
             //Función que setea un input válido
-            var setToTrue = function($input){
-                var $parentHolder = $input.parent();
-                var type = $input.attr('type');
+            const setToTrue = ($input) => {
+                const type = $input.attr('type');
 
                 if(type == 'hidden' || type == 'radio' || type == 'checkbox'){return false;}
 
@@ -200,11 +176,11 @@
                 if($input.data('disable-img-error')){return false;}
             }
             //Función que valida radio buttons, comprobando si uno está marcado o no
-            var validateRadio = function($element){
-                var $radioPack = $('input[name="'+ $element.attr('name') +'"]');
-                var isValidRadio = false;
-                $.each($radioPack, function(index, element){
-                    var $e = $(element);
+            const validateRadio = ($element) => {
+                const $radioPack = $('input[name="'+ $element.attr('name') +'"]');
+                let isValidRadio = false;
+                $.each($radioPack, (index, element) => {
+                    const $e = $(element);
                     if($e.prop('checked') == true){
                         isValidRadio = true;
                     }
@@ -222,17 +198,17 @@
 
             //Si no es click, elimina el mensaje de error
             if(event.type != 'submit'){
-                var $currentItem = $(event.currentTarget);
+                const $currentItem = $(event.currentTarget);
                 if($currentItem.next().is('.error-message')){
                     $currentItem.next().remove();
                 }
             }
 
-            $.each($inputs, function(index, element){
-                var $element = $(element);
-                var tagName = $(element).prop('tagName').toLowerCase();
-                var limit = $element.data('limit') ? $element.data('limit') : 5;
-                var elementValue = tagName == 'input' || tagName == 'textarea' ? $element.val() : $element.find('option:selected').val();
+            $.each($inputs, (index, element) => {
+                const $element = $(element);
+                const tagName = $(element).prop('tagName').toLowerCase();
+                const limit = $element.data('limit') ? $element.data('limit') : 5;
+                const elementValue = tagName == 'input' || tagName == 'textarea' ? $element.val() : $element.find('option:selected').val();
 
                 if($element.attr('data-validate-on-show') == 'false' || $element.attr('readonly')){
                     return true;
@@ -304,19 +280,18 @@
                 }, 300);
             }
         },
-        setupSliders : function(){
-            var self = this,
-                $content_sliders = $('.slider'),
+        setupSliders(){
+            const $content_sliders = $('.slider'),
                 automatic = $content_sliders.attr('data-auto') ? $content_sliders.attr('data-auto') : false;
 
             if($content_sliders.length === 0){return;}
 
-            $content_sliders.each(function(index, elem){
-                var $elem = $(elem),
-                    slider = $elem.ninjaSlider({
+            $content_sliders.each((index, elem) => {
+                const $elem = $(elem),
+                      slider = $elem.ninjaSlider({
                         auto : automatic,
-                        transitionCallback : function( index, slide, container ){
-                            var $slider = $(container),
+                        transitionCallback : ( index, slide, container ) => {
+                            const $slider = $(container),
                                 $bullets = $slider.find('.slide-control'),
                                 $numbers = $slider.prev().find('.change-number');
 
@@ -327,12 +302,13 @@
                     totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
 
 
-                    $elem.parent().find('.control-arrow').on('click', function( event ) {
-                        var $item = $(event.currentTarget),
+                    $elem.parent().find('.control-arrow').on('click', ( event ) => {
+                        const $item = $(event.currentTarget),
                             activeSlideNum = $elem.find('.slide-control.active').data('slide'),
                             direction = $item.hasClass('next'),
-                            totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1,
-                            targetSlidenum;
+                            totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
+
+                        let targetSlidenum;
 
                         if( direction ){
                             targetSlidenum = (activeSlideNum + 1) > totalSlidesIndex ? 0 : (activeSlideNum + 1);
@@ -343,10 +319,9 @@
                         slider.slide(targetSlidenum);
                     });
 
-                    $elem.find('.slide-control').on('click', function( event ) {
-                        var $item = $(event.currentTarget),
+                    $elem.find('.slide-control').on('click', ( event ) => {
+                        const $item = $(event.currentTarget),
                             targetSlidenum = $item.data('slide');
-
                         slider.slide(targetSlidenum);
                     });
 
@@ -354,91 +329,85 @@
             });
 
         },
-        getModal : function (event){
+        getModal(event){
             event.preventDefault();
-            var self = this;
-            var $item = $(event.currentTarget);
-            var target = $item.data('modal');
+            const $item = $(event.currentTarget);
+            const target = $item.data('modal');
 
             if($item.data('modal-delegated') === true){
                 return false;
             }
 
-            var $cortina = self.setScreen();
+            let $cortina = this.setScreen();
 
             $cortina.append('<div class="la-ball-beat"><div></div><div></div><div></div></div>').addClass('loaded');
 
 
-            $.ajax({url: 'partials/'+ target +'.html',dataType: "html", success: function(result){
+            $.ajax({url: 'partials/'+ target +'.html',dataType: "html", success: (result) => {
                 $('.la-ball-beat').remove();
                 $cortina.append(result);
 
                 $cortina.find('.lightbox').css('top', $document.scrollTop() + 30).addClass('animated bounceInDown');
 
-                $cortina.one('click', function(event){
+                $cortina.one('click', (event) => {
                     event.stopPropagation();
                     $cortina.removeClass('loaded').remove();
                 });
 
-                $cortina.find('.lightbox').on('click',function(event){
+                $cortina.find('.lightbox').on('click',(event) => {
                     event.stopPropagation();
                 });
 
-                self.eventsHandler( $cortina.find('[data-func]') );
+                this.eventsHandler( $cortina.find('[data-func]') );
 
             }});
 
         },
-        setScreen : function(){
-            var self = this;
-            var cortina = '<div class="screen" data-func="closeModal"></div>';
-            self.$body.append(cortina);
+        setScreen(){
+            const cortina = '<div class="screen" data-func="closeModal"></div>';
+            this.$body.append(cortina);
 
-            var $cortina = $('.screen');
+            const $cortina = $('.screen');
             $cortina.height($document.height());
             $cortina.addClass('on-screen');
 
             return $cortina;
         },
         //Retorna truo o false si el elemento está en pantalla
-        isScrolledIntoView : function(elem){
-            var $elem = $(elem);
-            var $window = $(window);
+        isScrolledIntoView(elem){
+            const $elem = $(elem);
 
-            var docViewTop = $window.scrollTop();
-            var docViewBottom = docViewTop + $window.height();
+            const docViewTop = this.$window.scrollTop();
+            const docViewBottom = docViewTop + this.$window.height();
 
-            var elemTop = $elem.offset().top;
-            var elemBottom = elemTop + $elem.height();
+            const elemTop = $elem.offset().top;
+            const elemBottom = elemTop + $elem.height();
 
             return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
         },
-        animateElements : function($elements){
-            var self = this;
-            $.each($elements, function(index, element){
-                var $element = $(element);
-                var animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
+        animateElements($elements){
+            $.each($elements, (index, element) => {
+                const $element = $(element);
+                const animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
 
                 $element.addClass('animated ' + animation);
 
             });
         },
-        animateOnView : function($elements){
-            var self = this;
-            $.each($elements, function(index, element){
-                var $element = $(element);
-                var animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
+        animateOnView($elements){
+            $.each($elements, (index, element) => {
+                const $element = $(element);
+                const animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
 
-                if(self.isScrolledIntoView($element)){
+                if(this.isScrolledIntoView($element)){
                     $element.addClass('animated ' + animation);
                 }
             });
         },
-        animateOnDelay : function($elements){
-            var self = this;
-            $.each($elements, function(index, element){
-                var $element = $(element);
-                if(self.isScrolledIntoView($element)){
+        animateOnDelay($elements){
+            $.each($elements, (index, element) => {
+                const $element = $(element);
+                if(this.isScrolledIntoView($element)){
                     $element.addClass('animated ' + $element.data('animate'));
                 }
             });
@@ -446,17 +415,16 @@
         /////////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////////////////// DELEGACIONES
-        closeModal : function(event){
+        closeModal(event){
             event.preventDefault();
-            var self = this;
-            var $item = $(event.currentTarget);
+            const $item = $(event.currentTarget);
             $('.screen').find('.lightbox').removeClass('bounceInDown').addClass('bounceOutUp');
 
-            setTimeout(function(){
+            setTimeout(() => {
                 $('.screen').removeClass('on-screen');
             }, 600);
             
-            setTimeout(function(){
+            setTimeout(() => {
                 $('.screen').remove();
             }, 900);
         }
@@ -469,13 +437,13 @@
     
     
     var Main = new window.handler(); //Se genera un nuevo objeto para almacenar las funciones
-    $document.ready(function(){Main.onReadySetup();}); //Se inicializan las funcionalidades en el document.ready
-    $window.load(function(){ Main.onLoadSetup(); }); //Se inicializan las funcionalidades en el window.ready
+    $document.ready(() => {Main.onReadySetup();}); //Se inicializan las funcionalidades en el document.ready
+    $window.load(() => { Main.onLoadSetup(); }); //Se inicializan las funcionalidades en el window.ready
 
     //Se inicializan las funcionalidades los eventos scroll y resize
     $window.on({
-        'scroll' : function(){Main.onScrollSetup();},
-        'resize' : function(){Main.onResizeSetup();}
+        'scroll' : () => {Main.onScrollSetup();},
+        'resize' : () => {Main.onResizeSetup();}
     });
     
     
