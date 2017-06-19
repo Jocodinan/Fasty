@@ -5,6 +5,7 @@
   animation-duration: 1s;
   -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
+  visibility: hidden !important;
 }
 
 .animated.infinite {
@@ -1394,6 +1395,7 @@
 .fadeInUp {
   -webkit-animation-name: fadeInUp;
   animation-name: fadeInUp;
+  visibility: visible !important
 }
 
 @-webkit-keyframes fadeInUpBig {
@@ -3262,4 +3264,15 @@
 .slideOutUp {
   -webkit-animation-name: slideOutUp;
   animation-name: slideOutUp;
+}
+
+
+@-webkit-keyframes slide {
+    from { left: 10% }
+    to { left: 90%; }
+}
+
+@keyframes slide {
+    from {left: 10% }
+    to { left: 90%; }
 }

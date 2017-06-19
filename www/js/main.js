@@ -16,20 +16,6 @@
         }
         return rv;
     }
-
-    // detecta IE9- a través del parseo del useragent y coloca una clase con la versión de IE en el HTML a través de Modernizr
-    Modernizr.addTest('oldie', () => {
-        const v = getInternetExplorerVersion();
-        return v <= 9 && v > -1 ;
-    });
-    Modernizr.addTest('oldie-8', () => {
-        const v = getInternetExplorerVersion();
-        return v <= 8 && v > -1 ;
-    });
-    Modernizr.addTest('oldie-7', () => {
-        const v = getInternetExplorerVersion();
-        return v <= 7 && v > -1 ;
-    });
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,9 +51,9 @@
         //Funciones que se inicializan en el document.ready
         onReadySetup(){
             this.$body = $('body'); //Se almacena el body en una variable para ahorrar memoria
+            this.indexCount = 0;
 
             this.eventsHandler( $('[data-func]') ); //Se ejecuta el método que permite la delegación de eventos automática desde el HTML
-            if( ! Modernizr.svg ) { this.svgFallback( $('[data-svgfallback]') ); } //Se ejecuta el fallback para SVG's si es que el navegador no lo soporta
             
             //Validador de formularios
             $('form[data-validate]').on('submit', (event) => {
@@ -80,10 +66,22 @@
             //Animaciones CSS al mostrar elemento en pantalla
             this.animateElements($('[data-animate]'));
 
+            if($('.flex-grid').length)
+              this.setupFlexGrid();
+
+            if($('.b-lazy').length){
+                const bLazy = new Blazy({
+                    success: function(ele){
+                        $(ele).addClass('elastic-img');
+                    }
+                });
+            }
+
         },
         //Funciones que se inicializan en el window.load
         onLoadSetup(){
             $('.equal').equalizeHeights();
+            this.showFlexGrid();
         },
         //Funciones que se inicializan en el evento scroll
         onScrollSetup(){
@@ -91,10 +89,25 @@
             this.animateOnView($('[data-animate-on-scroll]'));
             //Animaciones CSS con delay
             this.animateOnDelay($('[data-animate-delay]'));
+
+            this.callNewProyects();
         },
         //Funciones que se inicializan en el evento resize
         onResizeSetup(){
             $('.equal').equalizeHeights();
+        },
+        onPopStateSetup(event){
+            const url = document.URL;
+            let character = url.split('/').pop().split('.').shift();
+
+            if(!character){
+              character = 'work';
+            }
+
+            if(character){
+              this.switchPage(null, character);
+            }
+
         },
         //Setea delegaciones automáticas a través del HTML
         eventsHandler( $elements ){
@@ -110,49 +123,125 @@
                 } 
             });
     	},
-        //Fallback para imágenes SVG
-        svgFallback( $elements ){
-            if( ! $elements.length ){ return; }
-            let $item;
+      setupFlexGrid(){
+        $('.flex-grid').NewWaterfall({
+          width: 355,
+          delay: 60
+        });
+      },
+      callNewProyects(){
+        const flexGrid = $('.flex-grid');
 
-            $elements.each((index, elem) => {
-                $item = $(elem);
-                $item.attr('src', $item.data('svgfallback'));
+        if(!flexGrid.length){return false;}
+
+        if($(window).scrollTop() >= $(document).height() - $(window).height()){
+          if(this.indexCount == 2){
+            $('.ajax-loader').remove(); 
+            return false; 
+          }
+
+          $.ajax({url: 'partials/items-'+  this.indexCount +'.html',dataType: "html", success: (result) => {
+            flexGrid.append(result);
+            const $flexItems = flexGrid.find('[data-items-set="'+ this.indexCount +'"]');
+            this.eventsHandler($flexItems.find('[data-func]'));
+            $flexItems.find('img').on('load', (event) => {
+                this.showFlexGridBySet($(event.currentTarget).parents('li'));
             });
-        },
-        //Formatea strings según parámetros
-        // self.currency(value, 0, ['.', '.', '.'])
-        currency(num) {
-            let str = num.toString().replace("$", ""), parts = false, output = [], i = 1, formatted = null;
-            if(str.indexOf(".") > 0) {
-                parts = str.split(".");
-                str = parts[0];
+            this.indexCount++;
+          }});
+        }
+      },
+      showFlexGrid: function(){
+        const $flexGrid = $('.flex-grid'),
+              $proyects = $flexGrid.find('li');
+
+        $('.ajax-loader').not('.relative').remove();
+        $flexGrid.addClass('active');
+
+        $.each($proyects, (index, element) => {
+          const $element = $(element),
+                animation = $element.data('animation');
+
+          $element.addClass(animation);
+        });
+
+        if(!$('.infinite-scroll').find('.ajax-loader').length)
+          $('.infinite-scroll').append('<div class="ajax-loader relative"><div class="ajax-loader-indicator"></div></div>');
+      },
+      showFlexGridBySet: function($set){
+        $.each($set, (index, element) => {
+          const $element = $(element),
+                animation = $element.data('animation');
+
+          $element.addClass(animation);
+        });
+      },
+      switchPage: function(event, pageTarget){
+        if(event)
+          event.preventDefault();
+        const $item = event ? $(event.currentTarget) : null,
+              target = event ? $item.data('page') : pageTarget,
+              $container = $('#content-load');
+
+        window.scrollTo(0, 0);
+
+        this.$body.addClass('preload');
+        $container.css({'pointer-events': 'none', 'opacity': 0});
+        setTimeout(() => {
+          $.ajax({
+            url: 'partials/'+  target +'.html',
+            dataType: 'html',
+            success: (result) => {
+              this.indexCount = 0;
+              $container.html(result).css({'pointer-events': 'auto', 'opacity': 1});
+
+              if($container.find('.flex-grid').length){
+                this.setupFlexGrid();
+                $container.find('.flex-grid').find('img').on('load', (event) => {
+                  this.showFlexGrid();
+                });
+              }
+
+              if($container.find('.b-lazy').length){
+                const bLazy = new Blazy({
+                      success: function(ele){
+                        $(ele).addClass('elastic-img');
+                      }
+                  });
+              }
+
+              this.eventsHandler($container.find('[data-func]'));
+
+              $container.find('form[data-validate]').on('submit', (event) => {
+                this.validateForms(event);
+              });
+              $container.find('form[data-validate]').find('[required]').on('blur keyup change', (event) => {
+                this.validateForms(event);
+              });
+
+              this.$body.removeClass('preload');
+              
+              if(history && event){
+                history.pushState(null, null, target == 'work' ? '/' : target+'.html');
+              }
             }
-            str = str.split("").reverse();
-            for(var j = 0, len = str.length; j < len; j++) {
-                if(str[j] != ".") {
-                    output.push(str[j]);
-                    if(i%3 == 0 && j < (len - 1)) {
-                        output.push(".");
-                    }
-                    i++;
-                }
-            }
-            formatted = output.reverse().join("");
-            return(formatted + ((parts) ? "." + parts[1].substr(0, 2) : ""));
-        },
-        validateForms(event){
+          });
+        }, 700);
+      },
+      validateForms : function(event){
             event.preventDefault();
-            const $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form');//Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
-            const $inputs = event.type == 'submit' ? $form.find('[required]') : $(event.currentTarget); //Se almacenan todos los elementos requeridos
-            let isValid = true; //Flag para saber si el formulario finalmente es válido o no, al comienzo siempre es válido
-            const emailRegEx = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //Regex para comprobar email
-            const numerosRegEx = /^\d+(?:\.\d{1,2})?$/; //Regex para comprobar números
-            const letrasyNumerosRegEx = /^[0-9a-zA-Z]+$/ //Regex para numeros y letras;
+            var self = this;
+            var $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form');//Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
+            var $inputs = event.type == 'submit' ? $form.find('[required]') : $(event.currentTarget); //Se almacenan todos los elementos requeridos
+            var isValid = true; //Flag para saber si el formulario finalmente es válido o no, al comienzo siempre es válido
+            var emailRegEx = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; //Regex para comprobar email
+            var numerosRegEx = /^\d+(?:\.\d{1,2})?$/; //Regex para comprobar números
+            var letrasyNumerosRegEx = /^[0-9a-zA-Z]+$/; //Regex para numeros y letras;
             //Función que setea un input inválido
-            const setToFalse = ($input) => {
-                const customMessage = $input.data('custom-message'); //Mensaje customizado
-                const type = $input.attr('type'); //Tipo de input
+            var setToFalse = function($input){
+                var customMessage = $input.data('custom-message'); //Mensaje customizado
+                var $parentHolder = $input.parent(); //Elemento padre
+                var type = $input.attr('type'); //Tipo de input
                 isValid = false; //flag
 
                 if(type == 'hidden'){return false;} //Si el tipo de input es hidden no hace nada
@@ -164,23 +253,26 @@
                 }
 
                 if(type == 'radio' || type == 'checkbox'){return false;} //Si es un checkbox o un radio no hace nada
-            }
+            };
+
             //Función que setea un input válido
-            const setToTrue = ($input) => {
-                const type = $input.attr('type');
+            var setToTrue = function($input){
+                var $parentHolder = $input.parent();
+                var type = $input.attr('type');
 
                 if(type == 'hidden' || type == 'radio' || type == 'checkbox'){return false;}
 
                 $input.addClass('valid-input').removeClass('invalid-input'); //Agrega la clase valdia al input
 
                 if($input.data('disable-img-error')){return false;}
-            }
+            };
+
             //Función que valida radio buttons, comprobando si uno está marcado o no
-            const validateRadio = ($element) => {
-                const $radioPack = $('input[name="'+ $element.attr('name') +'"]');
-                let isValidRadio = false;
-                $.each($radioPack, (index, element) => {
-                    const $e = $(element);
+            var validateRadio = function($element){
+                var $radioPack = $('input[name="'+ $element.attr('name') +'"]');
+                var isValidRadio = false;
+                $.each($radioPack, function(index, element){
+                    var $e = $(element);
                     if($e.prop('checked') == true){
                         isValidRadio = true;
                     }
@@ -189,7 +281,27 @@
                 if(isValidRadio == false){
                     setToFalse($element);
                 }
-            }
+            };
+
+            var validateCheckboxLimit = function($element){
+                var $checkboxPack = $element.parents('.checkbox-wrapp').find('input[type="checkbox"]');
+                var counter = 0;
+                isValid = true;
+
+                $.each($checkboxPack, function(index, element){
+                    var $input = $(element);
+
+                    if($input.prop('checked') == true){
+                        counter++;
+                    }
+                });
+
+                if(counter < 1 || counter > 3){
+                    $checkboxPack.addClass('invalid-input');
+                    isValid = false;
+                }
+
+            };
 
             //Se elimina la clase de error a los inputs y la clase de input válido
             $inputs.removeClass('invalid-input');
@@ -198,17 +310,17 @@
 
             //Si no es click, elimina el mensaje de error
             if(event.type != 'submit'){
-                const $currentItem = $(event.currentTarget);
+                var $currentItem = $(event.currentTarget);
                 if($currentItem.next().is('.error-message')){
                     $currentItem.next().remove();
                 }
             }
 
-            $.each($inputs, (index, element) => {
-                const $element = $(element);
-                const tagName = $(element).prop('tagName').toLowerCase();
-                const limit = $element.data('limit') ? $element.data('limit') : 5;
-                const elementValue = tagName == 'input' || tagName == 'textarea' ? $element.val() : $element.find('option:selected').val();
+            $.each($inputs, function(index, element){
+                var $element = $(element);
+                var tagName = $(element).prop('tagName').toLowerCase();
+                var limit = $element.data('limit') ? $element.data('limit') : 5;
+                var elementValue = tagName == 'input' || tagName == 'textarea' ? $element.val() : $element.find('option:selected').val();
 
                 if($element.attr('data-validate-on-show') == 'false' || $element.attr('readonly')){
                     return true;
@@ -233,13 +345,19 @@
                     validateRadio($element);
                 }
 
+                //Checkbox
+                if(tagName == 'input' && $element.attr('type') == 'checkbox' && $element.hasClass('checkbox-limit') && event.type == 'submit'){
+                    validateCheckboxLimit($element);
+                }
+
+
                 //Email
                 if(tagName == 'input' && $element.attr('type') == 'email' && emailRegEx.test(elementValue) == false){
                     setToFalse($element);
                 }
 
                 //RUT
-                if(tagName == 'input' && $element.hasClass('rut-input') && $.Rut.validar(elementValue) == false){
+                if(tagName == 'input' && ($element.hasClass('rut') || $element.hasClass('rut-id')) && ($.Rut.validar($('.rut').val() +'-'+$('.rut-id').val()) == false) && ($('.rut').val().length >= 7)){
                     setToFalse($element);
                 }
 
@@ -270,8 +388,30 @@
 
             });
 
-            
-            if(isValid && event.type == 'submit'){
+            if(isValid && event.type == 'submit' && $form.data('validate') == 'async'){
+                $form.css({'pointer-events': 'none', 'opacity': 0 });
+                $form.after('<div class="ajax-loader absolute"><div class="ajax-loader-indicator"></div></div>');
+
+                // $.ajax({
+                //     method : 'POST',
+                //     url: 'partials/items.html',
+                //     data: $form.serialize(),
+                //     dataType: "html",
+                //     success: function(result){
+                //         console.log('success');
+                //         $form.html(result.html);
+                //         $form.css({'pointer-events': 'auto', 'opacity': 1 });
+                //         $form.next('.ajax-loader').remove();
+                //     }
+                // });
+
+                $.ajax({url: 'partials/contact-result.html',dataType: "html", success: (result) => {
+                    $form.html(result);
+                    $form.css({'pointer-events': 'auto', 'opacity': 1 });
+                    $form.next('.ajax-loader').remove();
+                }});
+            }
+            else if(isValid && event.type == 'submit'){
                 $form.off('submit');
                 $form.submit();
             }else if(!isValid && !$form.data('no-scroll') && event.type == 'submit'){
@@ -279,55 +419,6 @@
                     scrollTop: $(".invalid-input").offset().top - 120
                 }, 300);
             }
-        },
-        setupSliders(){
-            const $content_sliders = $('.slider'),
-                automatic = $content_sliders.attr('data-auto') ? $content_sliders.attr('data-auto') : false;
-
-            if($content_sliders.length === 0){return;}
-
-            $content_sliders.each((index, elem) => {
-                const $elem = $(elem),
-                      slider = $elem.ninjaSlider({
-                        auto : automatic,
-                        transitionCallback : ( index, slide, container ) => {
-                            const $slider = $(container),
-                                $bullets = $slider.find('.slide-control'),
-                                $numbers = $slider.prev().find('.change-number');
-
-                            $bullets.removeClass('active').filter('[data-slide="'+ index +'"]').addClass('active');
-                            $numbers.text(index + 1);
-                        }
-                    }).data('ninjaSlider'),
-                    totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
-
-
-                    $elem.parent().find('.control-arrow').on('click', ( event ) => {
-                        const $item = $(event.currentTarget),
-                            activeSlideNum = $elem.find('.slide-control.active').data('slide'),
-                            direction = $item.hasClass('next'),
-                            totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
-
-                        let targetSlidenum;
-
-                        if( direction ){
-                            targetSlidenum = (activeSlideNum + 1) > totalSlidesIndex ? 0 : (activeSlideNum + 1);
-                        } else {
-                            targetSlidenum = (activeSlideNum - 1) < 0 ? totalSlidesIndex : (activeSlideNum - 1);
-                        }
-
-                        slider.slide(targetSlidenum);
-                    });
-
-                    $elem.find('.slide-control').on('click', ( event ) => {
-                        const $item = $(event.currentTarget),
-                            targetSlidenum = $item.data('slide');
-                        slider.slide(targetSlidenum);
-                    });
-
-
-            });
-
         },
         getModal(event){
             event.preventDefault();
@@ -443,7 +534,8 @@
     //Se inicializan las funcionalidades los eventos scroll y resize
     $window.on({
         'scroll' : () => {Main.onScrollSetup();},
-        'resize' : () => {Main.onResizeSetup();}
+        'resize' : () => {Main.onResizeSetup();},
+        'popstate' : (event) => {Main.onPopStateSetup(event);}
     });
     
     

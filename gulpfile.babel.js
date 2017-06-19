@@ -50,7 +50,6 @@ gulp.task('lint', () => {
 });
 
 gulp.task('scripts', () => {
-  console.log('scripts');
   gulp.src([
     basePath +'js/main.js'
   ])
@@ -75,7 +74,7 @@ gulp.task('default', ['scripts', 'styles'], () => {
     port: 3000
   });
 
-  gulp.watch([basePath +'**/*.html'], [reload]);
-  gulp.watch([basePath +'sass/**/*.scss'], ['styles', reload]);
+  gulp.watch([basePath +'**/*.html'], ['scripts', reload]);
+  gulp.watch([basePath +'sass/**/*.scss'], ['styles', 'scripts', reload]);
   gulp.watch([basePath +'js/main.js'], ['scripts', reload]);
 });

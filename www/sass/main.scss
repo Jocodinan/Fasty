@@ -8,14 +8,17 @@
 @import 'mixins';
 /*------------------------------------------------------------------------------Tipografía */
 @import 'fonts';
-/*------------------------------------------------------------------------------Variables */
-@import 'example';
 
 /*------------------------------------------------------------------------------Grillas */
-.row {width: 100%; max-width: $max-width-row; margin-left: auto; margin-right: auto;}
+.row {
+  width: 100%; max-width: $max-width-row; margin-left: auto; margin-right: auto;
+  &.small{
+    max-width: 1220px;
+  }
+}
 
 //Generador de grilla
-@include ninja_grid(12, 10, 1170, grid);
+@include grid(12, 10, 1450, grid);
 /*------------------------------------------------------------------------------Auxiliares */
 .to-the-left {float: left;}
 .to-the-right {float: right;}
@@ -112,6 +115,41 @@ pre {
   margin-bottom: 20px;
 }
 
+.container{
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.ajax-loader{
+  width: 300px;
+  height: 1px;
+  background-color: #d2d2d2;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  position: fixed;
+  &.relative{
+    position: relative;
+  }
+  &.absolute{
+    position: absolute;
+    top: 40%;
+  }
+  .ajax-loader-indicator{
+    background-color: $titles;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    display: block;
+    animation: slide 1.75s ease-in-out infinite alternate;
+    position: absolute;
+    top: -5px;
+  }
+}
+
+.ohidden{
+  overflow: hidden;
+}
 /*------------------------------------------------------------------------------Generales */
 html {
   font-size: #{$font-size-base}px;
@@ -123,6 +161,10 @@ body {
   background-color: $body-bg;
   font-size: #{$font-size-base}px;
   -webkit-backface-visibility: hidden;
+  color: $text-color;
+  &.preload{
+    overflow: hidden;
+  }
 }
 
 button {
@@ -133,9 +175,27 @@ a {
   color: $link-color;
   text-decoration: none;
   outline: 0 none;
+  transition: all 350ms ease;
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  text-decoration: underline;
+  &:before{
+    content: "";
+    width: 0%;
+    height: 2px;
+    position: absolute;
+    bottom: -1px;
+    background-color: $link-color;
+    transition: width 350ms ease;
+  }
   &:hover {
     color: darken($link-color, 15%);
     outline: 0 none;
+    border-color: transparent;
+    &:before{
+      width: 100%
+    }
   }
   &:focus {
     outline: 0 none;
@@ -163,7 +223,15 @@ p {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
-  font-weight: 600;
+  font-weight: bold;
+  color: $titles;
+  line-height: 120%;
+  font-weight: 300;
+  margin-bottom: 20px;
+}
+
+h1{
+  margin-bottom: 50px;
 }
 
 h1 {font-size: $h1-size}
@@ -180,6 +248,7 @@ h6 {font-size: $h6-size}
   display: inline-block;
   position: relative;
   vertical-align: middle;
+  background-image: url('../images/sprite.svg');
   background-repeat: no-repeat;
   background-position: center center;
   speak: none;
@@ -195,15 +264,9 @@ h6 {font-size: $h6-size}
     margin-right: auto;
     display: block;
   }
-  &.rounded-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 100%;
-  }
 }
 
 /*------------------------------------------------------------------------------Buttons */
-
 .btn {
   @extend .button-reset;
   font-family: $font-family-base;
@@ -212,15 +275,20 @@ h6 {font-size: $h6-size}
   vertical-align: middle;
   cursor: pointer;
   text-align: center;
-  font-size: 1em;
-  padding: 12px 20px;
-  border-radius: 5px;
+  font-size: 1.5em;
+  padding: 10px;
+  border-radius: 20px;
   width: auto;
   height: auto;
   line-height: 120%;
   transition: background 300ms ease;
-  /*----------------Tamaños--------*/
-  
+  color: #FFFFFF;
+  transition: all 350ms ease;
+  background-color: $titles;
+  padding: 20px 50px;
+  &:hover{
+    background-color: lighten($titles, 5%);
+  }
   /*----------------Formas--------*/
   &.transparent {
     color: transparent;
@@ -234,20 +302,28 @@ input, select, textarea {
   @include appearance(none);
   display: block;
   width: 100%;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   background-color: transparent;
-  border: 1px solid #A3C3D9;
-  border-radius: 5px;
-  padding: 7px 25px 7px 5px;
-  // color: $gray;
-  height: 32px;
+  border: 1px solid #CCC;
+  padding: 10px;
+  transition: all 350ms ease;
+  height: 45px;
   background-color: #FFF;
+  &:hover{
+    border-color: $titles;
+  }
   &:focus {
     outline: 0 none;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.3);
   }
 }
+.invalid-input{
+  border: 1px solid #c74325;
+}
+textarea{
+  min-height: 350px;
+}
 /*------------------------------------------------------------------------------Header */
-
 
 /*------------------------------------------------------------------------------Tables */
 
@@ -257,17 +333,8 @@ table {
 
 /*------------------------------------------------------------------------------Contenedores */
 
-
-/*------------------------------------------------------------------------------Animaciones */
-
-
 /*------------------------------------------------------------------------------Footer */
-
-
-
 /*------------------------------------------------------------------------------OLD IE */
-
-
 /*------------------------------------------------------------------------------Media Queries */
 
 @media only screen and (max-width: $max-width-row) {
@@ -275,8 +342,4 @@ table {
     padding-left: 10px;
     padding-right: 10px;
   }
-}
-
-@media only screen and (max-width: 640px) {
-
 }

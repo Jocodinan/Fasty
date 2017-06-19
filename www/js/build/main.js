@@ -21,20 +21,6 @@
         return rv;
     }
 
-    // detecta IE9- a través del parseo del useragent y coloca una clase con la versión de IE en el HTML a través de Modernizr
-    Modernizr.addTest('oldie', function () {
-        var v = getInternetExplorerVersion();
-        return v <= 9 && v > -1;
-    });
-    Modernizr.addTest('oldie-8', function () {
-        var v = getInternetExplorerVersion();
-        return v <= 8 && v > -1;
-    });
-    Modernizr.addTest('oldie-7', function () {
-        var v = getInternetExplorerVersion();
-        return v <= 7 && v > -1;
-    });
-
     /////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////// PLUGINS
@@ -72,11 +58,9 @@
             var _this2 = this;
 
             this.$body = $('body'); //Se almacena el body en una variable para ahorrar memoria
+            this.indexCount = 0;
 
             this.eventsHandler($('[data-func]')); //Se ejecuta el método que permite la delegación de eventos automática desde el HTML
-            if (!Modernizr.svg) {
-                this.svgFallback($('[data-svgfallback]'));
-            } //Se ejecuta el fallback para SVG's si es que el navegador no lo soporta
 
             //Validador de formularios
             $('form[data-validate]').on('submit', function (event) {
@@ -88,11 +72,22 @@
 
             //Animaciones CSS al mostrar elemento en pantalla
             this.animateElements($('[data-animate]'));
+
+            if ($('.flex-grid').length) this.setupFlexGrid();
+
+            if ($('.b-lazy').length) {
+                var bLazy = new Blazy({
+                    success: function success(ele) {
+                        $(ele).addClass('elastic-img');
+                    }
+                });
+            }
         },
 
         //Funciones que se inicializan en el window.load
         onLoadSetup: function onLoadSetup() {
             $('.equal').equalizeHeights();
+            this.showFlexGrid();
         },
 
         //Funciones que se inicializan en el evento scroll
@@ -101,11 +96,25 @@
             this.animateOnView($('[data-animate-on-scroll]'));
             //Animaciones CSS con delay
             this.animateOnDelay($('[data-animate-delay]'));
+
+            this.callNewProyects();
         },
 
         //Funciones que se inicializan en el evento resize
         onResizeSetup: function onResizeSetup() {
             $('.equal').equalizeHeights();
+        },
+        onPopStateSetup: function onPopStateSetup(event) {
+            var url = document.URL;
+            var character = url.split('/').pop().split('.').shift();
+
+            if (!character) {
+                character = 'work';
+            }
+
+            if (character) {
+                this.switchPage(null, character);
+            }
         },
 
         //Setea delegaciones automáticas a través del HTML
@@ -126,47 +135,119 @@
                 }
             });
         },
-
-        //Fallback para imágenes SVG
-        svgFallback: function svgFallback($elements) {
-            if (!$elements.length) {
-                return;
-            }
-            var $item = void 0;
-
-            $elements.each(function (index, elem) {
-                $item = $(elem);
-                $item.attr('src', $item.data('svgfallback'));
+        setupFlexGrid: function setupFlexGrid() {
+            $('.flex-grid').NewWaterfall({
+                width: 355,
+                delay: 60
             });
         },
+        callNewProyects: function callNewProyects() {
+            var _this4 = this;
 
-        //Formatea strings según parámetros
-        // self.currency(value, 0, ['.', '.', '.'])
-        currency: function currency(num) {
-            var str = num.toString().replace("$", ""),
-                parts = false,
-                output = [],
-                i = 1,
-                formatted = null;
-            if (str.indexOf(".") > 0) {
-                parts = str.split(".");
-                str = parts[0];
+            var flexGrid = $('.flex-grid');
+
+            if (!flexGrid.length) {
+                return false;
             }
-            str = str.split("").reverse();
-            for (var j = 0, len = str.length; j < len; j++) {
-                if (str[j] != ".") {
-                    output.push(str[j]);
-                    if (i % 3 == 0 && j < len - 1) {
-                        output.push(".");
-                    }
-                    i++;
+
+            if ($(window).scrollTop() >= $(document).height() - $(window).height()) {
+                if (this.indexCount == 2) {
+                    $('.ajax-loader').remove();
+                    return false;
                 }
+
+                $.ajax({ url: 'partials/items-' + this.indexCount + '.html', dataType: "html", success: function success(result) {
+                        flexGrid.append(result);
+                        var $flexItems = flexGrid.find('[data-items-set="' + _this4.indexCount + '"]');
+                        _this4.eventsHandler($flexItems.find('[data-func]'));
+                        $flexItems.find('img').on('load', function (event) {
+                            _this4.showFlexGridBySet($(event.currentTarget).parents('li'));
+                        });
+                        _this4.indexCount++;
+                    } });
             }
-            formatted = output.reverse().join("");
-            return formatted + (parts ? "." + parts[1].substr(0, 2) : "");
+        },
+
+        showFlexGrid: function showFlexGrid() {
+            var $flexGrid = $('.flex-grid'),
+                $proyects = $flexGrid.find('li');
+
+            $('.ajax-loader').not('.relative').remove();
+            $flexGrid.addClass('active');
+
+            $.each($proyects, function (index, element) {
+                var $element = $(element),
+                    animation = $element.data('animation');
+
+                $element.addClass(animation);
+            });
+
+            if (!$('.infinite-scroll').find('.ajax-loader').length) $('.infinite-scroll').append('<div class="ajax-loader relative"><div class="ajax-loader-indicator"></div></div>');
+        },
+        showFlexGridBySet: function showFlexGridBySet($set) {
+            $.each($set, function (index, element) {
+                var $element = $(element),
+                    animation = $element.data('animation');
+
+                $element.addClass(animation);
+            });
+        },
+        switchPage: function switchPage(event, pageTarget) {
+            var _this5 = this;
+
+            if (event) event.preventDefault();
+            var $item = event ? $(event.currentTarget) : null,
+                target = event ? $item.data('page') : pageTarget,
+                $container = $('#content-load');
+
+            window.scrollTo(0, 0);
+
+            this.$body.addClass('preload');
+            $container.css({ 'pointer-events': 'none', 'opacity': 0 });
+            setTimeout(function () {
+                $.ajax({
+                    url: 'partials/' + target + '.html',
+                    dataType: 'html',
+                    success: function success(result) {
+                        _this5.indexCount = 0;
+                        $container.html(result).css({ 'pointer-events': 'auto', 'opacity': 1 });
+
+                        if ($container.find('.flex-grid').length) {
+                            _this5.setupFlexGrid();
+                            $container.find('.flex-grid').find('img').on('load', function (event) {
+                                _this5.showFlexGrid();
+                            });
+                        }
+
+                        if ($container.find('.b-lazy').length) {
+                            var bLazy = new Blazy({
+                                success: function success(ele) {
+                                    $(ele).addClass('elastic-img');
+                                }
+                            });
+                        }
+
+                        _this5.eventsHandler($container.find('[data-func]'));
+
+                        $container.find('form[data-validate]').on('submit', function (event) {
+                            _this5.validateForms(event);
+                        });
+                        $container.find('form[data-validate]').find('[required]').on('blur keyup change', function (event) {
+                            _this5.validateForms(event);
+                        });
+
+                        _this5.$body.removeClass('preload');
+
+                        if (history && event) {
+                            history.pushState(null, null, target == 'work' ? '/' : target + '.html');
+                        }
+                    }
+                });
+            }, 700);
         },
         validateForms: function validateForms(event) {
             event.preventDefault();
+            var self = this;
             var $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form'); //Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
             var $inputs = event.type == 'submit' ? $form.find('[required]') : $(event.currentTarget); //Se almacenan todos los elementos requeridos
             var isValid = true; //Flag para saber si el formulario finalmente es válido o no, al comienzo siempre es válido
@@ -176,6 +257,7 @@
             //Función que setea un input inválido
             var setToFalse = function setToFalse($input) {
                 var customMessage = $input.data('custom-message'); //Mensaje customizado
+                var $parentHolder = $input.parent(); //Elemento padre
                 var type = $input.attr('type'); //Tipo de input
                 isValid = false; //flag
 
@@ -193,8 +275,10 @@
                     return false;
                 } //Si es un checkbox o un radio no hace nada
             };
+
             //Función que setea un input válido
             var setToTrue = function setToTrue($input) {
+                var $parentHolder = $input.parent();
                 var type = $input.attr('type');
 
                 if (type == 'hidden' || type == 'radio' || type == 'checkbox') {
@@ -207,6 +291,7 @@
                     return false;
                 }
             };
+
             //Función que valida radio buttons, comprobando si uno está marcado o no
             var validateRadio = function validateRadio($element) {
                 var $radioPack = $('input[name="' + $element.attr('name') + '"]');
@@ -220,6 +305,25 @@
 
                 if (isValidRadio == false) {
                     setToFalse($element);
+                }
+            };
+
+            var validateCheckboxLimit = function validateCheckboxLimit($element) {
+                var $checkboxPack = $element.parents('.checkbox-wrapp').find('input[type="checkbox"]');
+                var counter = 0;
+                isValid = true;
+
+                $.each($checkboxPack, function (index, element) {
+                    var $input = $(element);
+
+                    if ($input.prop('checked') == true) {
+                        counter++;
+                    }
+                });
+
+                if (counter < 1 || counter > 3) {
+                    $checkboxPack.addClass('invalid-input');
+                    isValid = false;
                 }
             };
 
@@ -265,13 +369,18 @@
                     validateRadio($element);
                 }
 
+                //Checkbox
+                if (tagName == 'input' && $element.attr('type') == 'checkbox' && $element.hasClass('checkbox-limit') && event.type == 'submit') {
+                    validateCheckboxLimit($element);
+                }
+
                 //Email
                 if (tagName == 'input' && $element.attr('type') == 'email' && emailRegEx.test(elementValue) == false) {
                     setToFalse($element);
                 }
 
                 //RUT
-                if (tagName == 'input' && $element.hasClass('rut-input') && $.Rut.validar(elementValue) == false) {
+                if (tagName == 'input' && ($element.hasClass('rut') || $element.hasClass('rut-id')) && $.Rut.validar($('.rut').val() + '-' + $('.rut-id').val()) == false && $('.rut').val().length >= 7) {
                     setToFalse($element);
                 }
 
@@ -301,7 +410,29 @@
                 }
             });
 
-            if (isValid && event.type == 'submit') {
+            if (isValid && event.type == 'submit' && $form.data('validate') == 'async') {
+                $form.css({ 'pointer-events': 'none', 'opacity': 0 });
+                $form.after('<div class="ajax-loader absolute"><div class="ajax-loader-indicator"></div></div>');
+
+                // $.ajax({
+                //     method : 'POST',
+                //     url: 'partials/items.html',
+                //     data: $form.serialize(),
+                //     dataType: "html",
+                //     success: function(result){
+                //         console.log('success');
+                //         $form.html(result.html);
+                //         $form.css({'pointer-events': 'auto', 'opacity': 1 });
+                //         $form.next('.ajax-loader').remove();
+                //     }
+                // });
+
+                $.ajax({ url: 'partials/contact-result.html', dataType: "html", success: function success(result) {
+                        $form.html(result);
+                        $form.css({ 'pointer-events': 'auto', 'opacity': 1 });
+                        $form.next('.ajax-loader').remove();
+                    } });
+            } else if (isValid && event.type == 'submit') {
                 $form.off('submit');
                 $form.submit();
             } else if (!isValid && !$form.data('no-scroll') && event.type == 'submit') {
@@ -310,55 +441,8 @@
                 }, 300);
             }
         },
-        setupSliders: function setupSliders() {
-            var $content_sliders = $('.slider'),
-                automatic = $content_sliders.attr('data-auto') ? $content_sliders.attr('data-auto') : false;
-
-            if ($content_sliders.length === 0) {
-                return;
-            }
-
-            $content_sliders.each(function (index, elem) {
-                var $elem = $(elem),
-                    slider = $elem.ninjaSlider({
-                    auto: automatic,
-                    transitionCallback: function transitionCallback(index, slide, container) {
-                        var $slider = $(container),
-                            $bullets = $slider.find('.slide-control'),
-                            $numbers = $slider.prev().find('.change-number');
-
-                        $bullets.removeClass('active').filter('[data-slide="' + index + '"]').addClass('active');
-                        $numbers.text(index + 1);
-                    }
-                }).data('ninjaSlider'),
-                    totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
-
-                $elem.parent().find('.control-arrow').on('click', function (event) {
-                    var $item = $(event.currentTarget),
-                        activeSlideNum = $elem.find('.slide-control.active').data('slide'),
-                        direction = $item.hasClass('next'),
-                        totalSlidesIndex = $elem.find('.content-slider-items').children().length - 1;
-
-                    var targetSlidenum = void 0;
-
-                    if (direction) {
-                        targetSlidenum = activeSlideNum + 1 > totalSlidesIndex ? 0 : activeSlideNum + 1;
-                    } else {
-                        targetSlidenum = activeSlideNum - 1 < 0 ? totalSlidesIndex : activeSlideNum - 1;
-                    }
-
-                    slider.slide(targetSlidenum);
-                });
-
-                $elem.find('.slide-control').on('click', function (event) {
-                    var $item = $(event.currentTarget),
-                        targetSlidenum = $item.data('slide');
-                    slider.slide(targetSlidenum);
-                });
-            });
-        },
         getModal: function getModal(event) {
-            var _this4 = this;
+            var _this6 = this;
 
             event.preventDefault();
             var $item = $(event.currentTarget);
@@ -387,7 +471,7 @@
                         event.stopPropagation();
                     });
 
-                    _this4.eventsHandler($cortina.find('[data-func]'));
+                    _this6.eventsHandler($cortina.find('[data-func]'));
                 } });
         },
         setScreen: function setScreen() {
@@ -422,23 +506,23 @@
             });
         },
         animateOnView: function animateOnView($elements) {
-            var _this5 = this;
+            var _this7 = this;
 
             $.each($elements, function (index, element) {
                 var $element = $(element);
                 var animation = $element.data('animate') ? $element.data('animate') : $element.data('animate-on-scroll');
 
-                if (_this5.isScrolledIntoView($element)) {
+                if (_this7.isScrolledIntoView($element)) {
                     $element.addClass('animated ' + animation);
                 }
             });
         },
         animateOnDelay: function animateOnDelay($elements) {
-            var _this6 = this;
+            var _this8 = this;
 
             $.each($elements, function (index, element) {
                 var $element = $(element);
-                if (_this6.isScrolledIntoView($element)) {
+                if (_this8.isScrolledIntoView($element)) {
                     $element.addClass('animated ' + $element.data('animate'));
                 }
             });
@@ -482,6 +566,9 @@
         },
         'resize': function resize() {
             Main.onResizeSetup();
+        },
+        'popstate': function popstate(event) {
+            Main.onPopStateSetup(event);
         }
     });
 })(window, document, jQuery);

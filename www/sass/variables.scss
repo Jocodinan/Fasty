@@ -1,29 +1,32 @@
-$font-family-base: 'Open Sans', sans-serif;//Familia tipográfica base
-$line-height-base: 160%;//Line height base
+$font-family-base: 'Open sans', sans-serif;//Familia tipográfica base
+$line-height-base: 130%;//Line height base
 $font-size-base: 14;//Tamaño base en pixeles
 
-$link-color: #007BC1;//Color del link principal
+$link-color: #202123;//Color del link principal
 $link-hover-color: darken($link-color, 15%);
 $body-bg: #FFF;//Fondo del body
 
-$max-width-row: 1170px;
+$max-width-row: 1450px;
 
-$h1-size: #{(20 / $font-size-base)}em;
-$h2-size: #{(18 / $font-size-base)}em;
-$h3-size: #{(16 / $font-size-base)}em;
-$h4-size: #{(14 / $font-size-base)}em;
-$h5-size: 1.5em;
-$h6-size: 1.2em;
+$h1-size: #{(40 / $font-size-base)}em;
+$h2-size: #{(36 / $font-size-base)}em;
+$h3-size: #{(30 / $font-size-base)}em;
+$h4-size: #{(28 / $font-size-base)}em;
+$h5-size: #{(24 / $font-size-base)}em;
+$h6-size: #{(21 / $font-size-base)}em;
 
-$margin: 20px; //Margen general
+$margin: 30px; //Margen general
 
 /*----Colores principales----*/
-
+$titles: #202123;
+$text-color: #6b6a6f;
 
 /*----Colores secundarios----*/
 
-
 /*----Breakpoints----*/
+
+$margin-factor: 150;
+$minimal-factor: 30;
 
 $breakpoints: (
   xlarge: "(min-width : 1300px)",
