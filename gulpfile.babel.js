@@ -34,7 +34,6 @@ gulp.task('styles', () => {
     }).on('error', $.sass.logError))
     .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
     .pipe(gulp.dest('.tmp/styles'))
-    // Concatenate and minify styles
     .pipe($.if('*.css', $.cssnano()))
     .pipe($.size({title: 'styles'}))
     .pipe($.sourcemaps.write('./'))
@@ -51,25 +50,28 @@ gulp.task('lint', () => {
 
 gulp.task('scripts', () => {
   gulp.src([
+    basePath + 'js/libs/jquery.js',
     basePath +'js/main.js'
   ])
-    .pipe(babel({
-        presets: ['es2015']
-    }))
-    .pipe(gulp.dest(basePath +'js/build'));
+  .pipe($.sourcemaps.init())
+  .pipe(babel({
+      presets: ['es2015']
+  }))
+  .pipe($.sourcemaps.write())
+  .pipe(gulp.dest('.tmp/scripts'))
+  .pipe($.concat('main.js'))
+  .pipe($.size({title: 'scripts'}))
+  .pipe($.sourcemaps.write('.'))
+  .pipe(gulp.dest(basePath +'js/build'))
+  .pipe(gulp.dest('.tmp/scripts'));
+
 });
 
 gulp.task('default', ['scripts', 'styles'], () => {
   browserSync({
     notify: false,
-    // Customize the Browsersync console logging prefix
     logPrefix: 'WSK',
-    // Allow scroll syncing across breakpoints
     scrollElementMapping: ['main', '.mdl-layout'],
-    // Run as an https by uncommenting 'https: true'
-    // Note: this uses an unsigned certificate which on first access
-    //       will present a certificate warning in the browser.
-    // https: true,
     server: ['.tmp', basePath],
     port: 3000
   });
@@ -77,4 +79,63 @@ gulp.task('default', ['scripts', 'styles'], () => {
   gulp.watch([basePath +'**/*.html'], ['scripts', reload]);
   gulp.watch([basePath +'sass/**/*.scss'], ['styles', 'scripts', reload]);
   gulp.watch([basePath +'js/main.js'], ['scripts', reload]);
+});
+
+gulp.task('html', () => {
+  return gulp.src(basePath +'**/*.html')
+          .pipe($.if('*.html', $.htmlmin({
+            removeComments: true,
+            collapseWhitespace: true,
+            collapseBooleanAttributes: true,
+            removeAttributeQuotes: true,
+            removeRedundantAttributes: true,
+            removeEmptyAttributes: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            removeOptionalTags: true
+          })))
+          .pipe($.if('*.html', $.size({title: 'html', showFiles: true})))
+          .pipe(gulp.dest(distPath));
+});
+
+gulp.task('images', () =>
+  gulp.src(basePath +'images/**/*')
+    .pipe($.cache($.imagemin({
+      progressive: true,
+      interlaced: true
+    })))
+    .pipe(gulp.dest(distPath + 'images'))
+    .pipe($.size({title: 'images'}))
+);
+
+gulp.task('copy', () => {
+  gulp.src([
+    basePath + '*',
+    '!'+ basePath +'/*.html'
+  ], {
+    dot: true
+  }).pipe(gulp.dest(distPath))
+    .pipe($.size({title: 'copy'}))
+});
+
+gulp.task('build', ['html', 'images'],() => {
+  //Scripts
+  gulp.src([
+    basePath +'js/build/main.js'
+  ])
+  .pipe($.uglify())
+  .pipe(gulp.dest(distPath +'js/build'));
+
+  //Styles
+  gulp.src([
+    basePath +'css/main.css'
+  ])
+  .pipe(gulp.dest(distPath +'css/'));
+
+  //Fonts
+  gulp.src([
+    basePath +'css/fonts/**/*.*'
+  ])
+  .pipe(gulp.dest(distPath +'css/fonts/'));
+
 });

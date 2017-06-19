@@ -1,13 +1,10 @@
 (function (window, document, $, undefined) {
-    "use strict"; //Modo estricto para prevenir errores y malas prácticas
-    
-    //Se almacena window y document en variables al comienzo para no utilizar memoria después
+    "use strict";
     const $window = $(window),
         $document = $(document);
     
-    //Detecta la versión de Internet Explorer según su User Agent y retorna su versión
     function getInternetExplorerVersion() {
-        let rv = -1; // Return value assumes failure.
+        let rv = -1;
         if (navigator.appName == 'Microsoft Internet Explorer') {
             const ua = navigator.userAgent;
             const re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
@@ -17,11 +14,6 @@
         return rv;
     }
     
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////// PLUGINS
-
-    //Igual la altura de las cajas
     $.fn.equalizeHeights = () => {
         let $items = $(this),
             heightArray = [];
@@ -32,84 +24,33 @@
         return this;
     };
 
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////// HANDLERS
-
     window.handler = () => {
        
     };
 
-
-    //Se almacenan las funciones dentro del prototipo del objeto por convención, recomendación y performance por sobre todo
     window.handler.prototype = {
-
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        /////////////////////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////////////////// INICIALIZADORAS
-
-        //Funciones que se inicializan en el document.ready
         onReadySetup(){
-            this.$body = $('body'); //Se almacena el body en una variable para ahorrar memoria
+            this.$body = $('body');
             this.indexCount = 0;
 
-            this.eventsHandler( $('[data-func]') ); //Se ejecuta el método que permite la delegación de eventos automática desde el HTML
+            this.eventsHandler( $('[data-func]') );
             
-            //Validador de formularios
             $('form[data-validate]').on('submit', (event) => {
                 this.validateForms(event);
             });
             $('form[data-validate]').find('[required]').on('blur keyup change', (event) => {
                 this.validateForms(event);
             });
-
-            //Animaciones CSS al mostrar elemento en pantalla
-            this.animateElements($('[data-animate]'));
-
-            if($('.flex-grid').length)
-              this.setupFlexGrid();
-
-            if($('.b-lazy').length){
-                const bLazy = new Blazy({
-                    success: function(ele){
-                        $(ele).addClass('elastic-img');
-                    }
-                });
-            }
-
         },
-        //Funciones que se inicializan en el window.load
         onLoadSetup(){
             $('.equal').equalizeHeights();
-            this.showFlexGrid();
         },
-        //Funciones que se inicializan en el evento scroll
         onScrollSetup(){
-             //Animaciones CSS al mostrar elemento en pantalla
-            this.animateOnView($('[data-animate-on-scroll]'));
-            //Animaciones CSS con delay
-            this.animateOnDelay($('[data-animate-delay]'));
 
-            this.callNewProyects();
         },
-        //Funciones que se inicializan en el evento resize
         onResizeSetup(){
             $('.equal').equalizeHeights();
         },
-        onPopStateSetup(event){
-            const url = document.URL;
-            let character = url.split('/').pop().split('.').shift();
-
-            if(!character){
-              character = 'work';
-            }
-
-            if(character){
-              this.switchPage(null, character);
-            }
-
-        },
-        //Setea delegaciones automáticas a través del HTML
         eventsHandler( $elements ){
             if( ! $elements.length ){ return; }
 
@@ -122,113 +63,8 @@
                     $item.data('delegated', true);
                 } 
             });
-    	},
-      setupFlexGrid(){
-        $('.flex-grid').NewWaterfall({
-          width: 355,
-          delay: 60
-        });
-      },
-      callNewProyects(){
-        const flexGrid = $('.flex-grid');
-
-        if(!flexGrid.length){return false;}
-
-        if($(window).scrollTop() >= $(document).height() - $(window).height()){
-          if(this.indexCount == 2){
-            $('.ajax-loader').remove(); 
-            return false; 
-          }
-
-          $.ajax({url: 'partials/items-'+  this.indexCount +'.html',dataType: "html", success: (result) => {
-            flexGrid.append(result);
-            const $flexItems = flexGrid.find('[data-items-set="'+ this.indexCount +'"]');
-            this.eventsHandler($flexItems.find('[data-func]'));
-            $flexItems.find('img').on('load', (event) => {
-                this.showFlexGridBySet($(event.currentTarget).parents('li'));
-            });
-            this.indexCount++;
-          }});
-        }
-      },
-      showFlexGrid: function(){
-        const $flexGrid = $('.flex-grid'),
-              $proyects = $flexGrid.find('li');
-
-        $('.ajax-loader').not('.relative').remove();
-        $flexGrid.addClass('active');
-
-        $.each($proyects, (index, element) => {
-          const $element = $(element),
-                animation = $element.data('animation');
-
-          $element.addClass(animation);
-        });
-
-        if(!$('.infinite-scroll').find('.ajax-loader').length)
-          $('.infinite-scroll').append('<div class="ajax-loader relative"><div class="ajax-loader-indicator"></div></div>');
-      },
-      showFlexGridBySet: function($set){
-        $.each($set, (index, element) => {
-          const $element = $(element),
-                animation = $element.data('animation');
-
-          $element.addClass(animation);
-        });
-      },
-      switchPage: function(event, pageTarget){
-        if(event)
-          event.preventDefault();
-        const $item = event ? $(event.currentTarget) : null,
-              target = event ? $item.data('page') : pageTarget,
-              $container = $('#content-load');
-
-        window.scrollTo(0, 0);
-
-        this.$body.addClass('preload');
-        $container.css({'pointer-events': 'none', 'opacity': 0});
-        setTimeout(() => {
-          $.ajax({
-            url: 'partials/'+  target +'.html',
-            dataType: 'html',
-            success: (result) => {
-              this.indexCount = 0;
-              $container.html(result).css({'pointer-events': 'auto', 'opacity': 1});
-
-              if($container.find('.flex-grid').length){
-                this.setupFlexGrid();
-                $container.find('.flex-grid').find('img').on('load', (event) => {
-                  this.showFlexGrid();
-                });
-              }
-
-              if($container.find('.b-lazy').length){
-                const bLazy = new Blazy({
-                      success: function(ele){
-                        $(ele).addClass('elastic-img');
-                      }
-                  });
-              }
-
-              this.eventsHandler($container.find('[data-func]'));
-
-              $container.find('form[data-validate]').on('submit', (event) => {
-                this.validateForms(event);
-              });
-              $container.find('form[data-validate]').find('[required]').on('blur keyup change', (event) => {
-                this.validateForms(event);
-              });
-
-              this.$body.removeClass('preload');
-              
-              if(history && event){
-                history.pushState(null, null, target == 'work' ? '/' : target+'.html');
-              }
-            }
-          });
-        }, 700);
-      },
-      validateForms : function(event){
+        },
+        validateForms : function(event){
             event.preventDefault();
             var self = this;
             var $form = event.type == 'submit' ? $(event.currentTarget) : $(event.currentTarget).parents('form');//Se almacena el objeto del formulario, en caso de submit y en caso de otros eventos
@@ -464,7 +300,6 @@
 
             return $cortina;
         },
-        //Retorna truo o false si el elemento está en pantalla
         isScrolledIntoView(elem){
             const $elem = $(elem);
 
@@ -520,24 +355,14 @@
             }, 900);
         }
     };
+    
+    var Main = new window.handler();
+    $document.ready(() => {Main.onReadySetup();});
+    $window.on('load',() => { Main.onLoadSetup(); });
 
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////// COMIENZO
-    
-    
-    var Main = new window.handler(); //Se genera un nuevo objeto para almacenar las funciones
-    $document.ready(() => {Main.onReadySetup();}); //Se inicializan las funcionalidades en el document.ready
-    $window.load(() => { Main.onLoadSetup(); }); //Se inicializan las funcionalidades en el window.ready
-
-    //Se inicializan las funcionalidades los eventos scroll y resize
     $window.on({
         'scroll' : () => {Main.onScrollSetup();},
         'resize' : () => {Main.onResizeSetup();},
         'popstate' : (event) => {Main.onPopStateSetup(event);}
     });
-    
-    
-        
 } (window, document, jQuery));
